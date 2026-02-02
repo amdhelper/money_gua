@@ -23,6 +23,17 @@ const Map<String, String> trigramMeanings = {
   '000': '地',
 };
 
+const Map<String, String> trigramAttributes = {
+  '111': '天 / 金',
+  '011': '泽 / 金',
+  '101': '火 / 火',
+  '001': '雷 / 木',
+  '110': '风 / 木',
+  '010': '水 / 水',
+  '100': '山 / 土',
+  '000': '地 / 土',
+};
+
 // Full 64 Hexagrams Data
 // Binary key is from Bottom (index 0) to Top (index 5)
 // But for string readability, let's keep it consistent: string index 0 is bottom line.
