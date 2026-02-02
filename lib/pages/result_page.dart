@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/hexagram.dart';
 import '../widgets/yin_yang_switch.dart';
+import '../widgets/tap_to_read.dart';
+import '../services/tts_service.dart';
 
 class ResultPage extends StatefulWidget {
   final Hexagram hexagram;
@@ -29,6 +31,7 @@ class _ResultPageState extends State<ResultPage> {
 
   @override
   void dispose() {
+    TtsService().stop();
     _noteController.dispose();
     super.dispose();
   }
@@ -78,7 +81,10 @@ class _ResultPageState extends State<ResultPage> {
     return Scaffold(
       backgroundColor: const Color(0xFF121212),
       appBar: AppBar(
-        title: Text(widget.hexagram.title),
+        title: TapToRead(
+          text: widget.hexagram.title,
+          child: Text(widget.hexagram.title),
+        ),
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
@@ -116,6 +122,40 @@ class _ResultPageState extends State<ResultPage> {
               style: TextStyle(color: Color(0xFFA8D8B9), fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
+            
+            // The content itself should be clickable to read
+            TapToRead(
+              text: "断曰：${widget.hexagram.summary}。${widget.hexagram.description}",
+              label: "卦辞",
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1E1E1E),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.white10),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.hexagram.summary,
+                      style: const TextStyle(color: Color(0xFFFFD700), fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      widget.hexagram.description,
+                      style: const TextStyle(color: Colors.white70, fontSize: 16, height: 1.5),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 24),
+            const Text("您的感悟", style: TextStyle(color: Colors.white54, fontSize: 14)),
+            const SizedBox(height: 8),
+
             TextField(
               controller: _noteController,
               maxLines: null,
@@ -159,12 +199,15 @@ class _ResultPageState extends State<ResultPage> {
   }
 
   Widget _buildTrigramInfo(String label, String name) {
-    return Column(
-      children: [
-        Text(label, style: const TextStyle(color: Colors.white54, fontSize: 14)),
-        const SizedBox(height: 8),
-        Text(name, style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
-      ],
+    return TapToRead(
+      text: "$label $name",
+      child: Column(
+        children: [
+          Text(label, style: const TextStyle(color: Colors.white54, fontSize: 14)),
+          const SizedBox(height: 8),
+          Text(name, style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
+        ],
+      ),
     );
   }
 }

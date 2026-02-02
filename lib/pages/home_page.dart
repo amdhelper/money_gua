@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/hexagram.dart';
 import '../widgets/yin_yang_switch.dart';
+import '../widgets/tap_to_read.dart';
 import '../data/hexagram_data.dart';
 import 'result_page.dart';
 
@@ -60,9 +61,16 @@ class _HomePageState extends State<HomePage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text(
-                '请自下而上拨动爻象',
-                style: TextStyle(color: Colors.white54, fontSize: 16),
+              TapToRead(
+                text: '请自下而上拨动爻象',
+                label: '提示',
+                child: const Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: Text(
+                    '请自下而上拨动爻象',
+                    style: TextStyle(color: Colors.white54, fontSize: 16),
+                  ),
+                ),
               ),
               const SizedBox(height: 32),
               // We render from Top (Index 5) to Bottom (Index 0)
