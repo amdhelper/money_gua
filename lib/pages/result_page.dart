@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/hexagram.dart';
 import '../widgets/yin_yang_switch.dart';
@@ -142,7 +143,123 @@ class _ResultPageState extends State<ResultPage> {
             ),
             const Divider(color: Colors.white24, height: 48),
 
-            // 4. Details & Editing
+            // 4. Vernacular Translation
+            if (widget.hexagram.translation.isNotEmpty) ...[
+              const Text(
+                "白话译文",
+                style: TextStyle(color: Color(0xFFA8D8B9), fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 12),
+              TapToRead(
+                text: widget.hexagram.translation,
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF2D2D2D),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    widget.hexagram.translation,
+                    style: const TextStyle(color: Colors.white, fontSize: 16, height: 1.6),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 32),
+            ],
+
+            // 5. Waterfall Content (Images & Detailed Meanings)
+            const Text(
+              "图解卦义",
+              style: TextStyle(color: Color(0xFFA8D8B9), fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            
+            MasonryGridView.count(
+              crossAxisCount: 2,
+              mainAxisSpacing: 12,
+              crossAxisSpacing: 12,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: (widget.hexagram.imageLeft.isNotEmpty ? 1 : 0) + 
+                         (widget.hexagram.imageRight.isNotEmpty ? 1 : 0),
+              itemBuilder: (context, index) {
+                bool isLeft = index == 0 && widget.hexagram.imageLeft.isNotEmpty;
+                String imgPath = isLeft ? widget.hexagram.imageLeft : widget.hexagram.imageRight;
+                String meaning = isLeft ? widget.hexagram.leftMeaning : widget.hexagram.rightMeaning;
+                
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    GestureDetector(
+                      onTap: () {
+                        // 1. Trigger TTS (Sync with TapToRead logic)
+                        TtsService().speak(meaning);
+                        // 2. Show Enlarged Image
+                        showDialog(
+                          context: context,
+                          builder: (context) => Dialog(
+                            backgroundColor: Colors.transparent,
+                            insetPadding: EdgeInsets.zero,
+                            child: Stack(
+                              children: [
+                                InteractiveViewer(
+                                  panEnabled: true,
+                                  minScale: 0.5,
+                                  maxScale: 4.0,
+                                  child: Center(
+                                    child: Image.asset(
+                                      imgPath,
+                                      fit: BoxFit.contain,
+                                      width: MediaQuery.of(context).size.width,
+                                      height: MediaQuery.of(context).size.height,
+                                    ),
+                                  ),
+                                ),
+                                Positioned(
+                                  top: 40,
+                                  right: 20,
+                                  child: IconButton(
+                                    icon: const Icon(Icons.close, color: Colors.white, size: 30),
+                                    onPressed: () => Navigator.pop(context),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.asset(
+                          imgPath,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) => Container(
+                            height: 100,
+                            color: Colors.white10,
+                            child: const Icon(Icons.image_not_supported, color: Colors.white24),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    TapToRead(
+                      text: meaning,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        child: Text(
+                          meaning,
+                          style: const TextStyle(color: Colors.white70, fontSize: 14, height: 1.4),
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+
+            const SizedBox(height: 32),
+            // 6. Details & Editing
             const Text(
               "卦辞解读 & 笔记",
               style: TextStyle(color: Color(0xFFA8D8B9), fontSize: 18, fontWeight: FontWeight.bold),

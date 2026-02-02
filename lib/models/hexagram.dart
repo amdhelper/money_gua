@@ -7,6 +7,11 @@ class Hexagram {
   final String lowerTrigram;
   final String description;
   final String summary;
+  final String translation;
+  final String leftMeaning;
+  final String rightMeaning;
+  final String imageLeft;
+  final String imageRight;
 
   const Hexagram({
     required this.id,
@@ -17,6 +22,11 @@ class Hexagram {
     required this.lowerTrigram,
     required this.description,
     required this.summary,
+    this.translation = "",
+    this.leftMeaning = "",
+    this.rightMeaning = "",
+    this.imageLeft = "",
+    this.imageRight = "",
   });
 
   factory Hexagram.fromJson(Map<String, dynamic> json) {
@@ -29,6 +39,11 @@ class Hexagram {
       lowerTrigram: json['lowerTrigram'],
       description: json['description'],
       summary: json['summary'],
+      translation: json['translation'] ?? "",
+      leftMeaning: json['leftMeaning'] ?? "",
+      rightMeaning: json['rightMeaning'] ?? "",
+      imageLeft: json['imageLeft'] ?? "",
+      imageRight: json['imageRight'] ?? "",
     );
   }
 
@@ -42,6 +57,11 @@ class Hexagram {
       'lowerTrigram': lowerTrigram,
       'description': description,
       'summary': summary,
+      'translation': translation,
+      'leftMeaning': leftMeaning,
+      'rightMeaning': rightMeaning,
+      'imageLeft': imageLeft,
+      'imageRight': imageRight,
     };
   }
 }
