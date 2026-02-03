@@ -12,9 +12,8 @@ class TtsService {
 
   final FlutterTts _flutterTts = FlutterTts();
   final AudioPlayer _audioPlayer = AudioPlayer();
-  
+
   bool _useEdgeTtsCli = false;
-  bool _isLinux = false;
 
   String? _edgeTtsPath;
 
@@ -24,8 +23,6 @@ class TtsService {
 
   Future<void> _init() async {
     if (!kIsWeb && Platform.isLinux) {
-      _isLinux = true;
-      
       // 1. Check for local python_env (Development/Portable)
       // We check current directory first.
       final localPath = '${Directory.current.path}/python_env/bin/edge-tts';
@@ -46,16 +43,20 @@ class TtsService {
           debugPrint('TTS: Error checking for system edge-tts: $e');
         }
       }
-      
+
       if (!_useEdgeTtsCli) {
-         debugPrint('TTS: edge-tts not found. Falling back to system TTS.');
+        debugPrint('TTS: edge-tts not found. Falling back to system TTS.');
       }
     }
 
     if (!_useEdgeTtsCli) {
-      await _flutterTts.setLanguage("zh-CN");
-      await _flutterTts.setPitch(1.0);
-      await _flutterTts.setSpeechRate(0.5);
+      try {
+        await _flutterTts.setLanguage("zh-CN");
+        await _flutterTts.setPitch(1.0);
+        await _flutterTts.setSpeechRate(0.5);
+      } catch (e) {
+        debugPrint('TTS: Error initializing flutter_tts: $e');
+      }
     }
   }
 
@@ -68,13 +69,28 @@ class TtsService {
     if (_useEdgeTtsCli && _edgeTtsPath != null) {
       await _speakWithEdgeCli(text);
     } else {
-      await _flutterTts.speak(text);
+      try {
+        await _flutterTts.speak(text);
+      } catch (e) {
+        debugPrint('TTS: Error with flutter_tts, trying edge-tts fallback: $e');
+        if (_edgeTtsPath != null) {
+          await _speakWithEdgeCli(text);
+        }
+      }
     }
   }
 
   Future<void> stop() async {
     await _audioPlayer.stop();
-    await _flutterTts.stop();
+
+    // Only call flutter_tts.stop() if not using edge-tts CLI
+    if (!_useEdgeTtsCli) {
+      try {
+        await _flutterTts.stop();
+      } catch (e) {
+        debugPrint('TTS: Error stopping flutter_tts: $e');
+      }
+    }
   }
 
   Future<void> _speakWithEdgeCli(String text) async {
@@ -88,22 +104,36 @@ class TtsService {
       if (!await file.exists()) {
         debugPrint('TTS: Generating audio for "$text" using $_edgeTtsPath');
         final process = await Process.run(_edgeTtsPath!, [
-          '--text', text,
-          '--voice', 'zh-CN-YunxiNeural',
-          '--write-media', filePath
+          '--text',
+          text,
+          '--voice',
+          'zh-CN-YunxiNeural',
+          '--write-media',
+          filePath,
         ]);
 
         if (process.exitCode != 0) {
           debugPrint('EdgeTTS Error: ${process.stderr}');
-          await _flutterTts.speak(text);
+          // Fallback to flutter_tts only if edge-tts fails
+          try {
+            await _flutterTts.speak(text);
+          } catch (e) {
+            debugPrint('TTS: Both edge-tts and flutter_tts failed: $e');
+          }
           return;
         }
       }
 
+      debugPrint('TTS: Playing audio file: $filePath');
       await _audioPlayer.play(DeviceFileSource(filePath));
     } catch (e) {
       debugPrint('EdgeTTS Exception: $e');
-      await _flutterTts.speak(text);
+      // Fallback to flutter_tts only if edge-tts fails
+      try {
+        await _flutterTts.speak(text);
+      } catch (e2) {
+        debugPrint('TTS: Both edge-tts and flutter_tts failed: $e2');
+      }
     }
   }
 }
