@@ -8,6 +8,7 @@ class Hexagram {
   final String description;
   final String summary;
   final String translation;
+  final String detailedInterpretation;
   final String leftMeaning;
   final String rightMeaning;
   final String imageLeft;
@@ -23,6 +24,7 @@ class Hexagram {
     required this.description,
     required this.summary,
     this.translation = "",
+    this.detailedInterpretation = "",
     this.leftMeaning = "",
     this.rightMeaning = "",
     this.imageLeft = "",
@@ -40,6 +42,7 @@ class Hexagram {
       description: json['description'],
       summary: json['summary'],
       translation: json['translation'] ?? "",
+      detailedInterpretation: json['detailedInterpretation'] ?? "",
       leftMeaning: json['leftMeaning'] ?? "",
       rightMeaning: json['rightMeaning'] ?? "",
       imageLeft: json['imageLeft'] ?? "",
@@ -58,6 +61,7 @@ class Hexagram {
       'description': description,
       'summary': summary,
       'translation': translation,
+      'detailedInterpretation': detailedInterpretation,
       'leftMeaning': leftMeaning,
       'rightMeaning': rightMeaning,
       'imageLeft': imageLeft,

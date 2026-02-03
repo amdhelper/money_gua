@@ -168,6 +168,32 @@ class _ResultPageState extends State<ResultPage> {
               const SizedBox(height: 32),
             ],
 
+            // 4.5 Detailed Interpretation (New)
+            if (widget.hexagram.detailedInterpretation.isNotEmpty) ...[
+              const Text(
+                "深度解析",
+                style: TextStyle(color: Color(0xFFA8D8B9), fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 12),
+              TapToRead(
+                text: widget.hexagram.detailedInterpretation,
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1E3A2F),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.white10),
+                  ),
+                  child: Text(
+                    widget.hexagram.detailedInterpretation,
+                    style: const TextStyle(color: Colors.white, fontSize: 15, height: 1.7),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 32),
+            ],
+
             // 5. Waterfall Content (Images & Detailed Meanings)
             const Text(
               "图解卦义",
