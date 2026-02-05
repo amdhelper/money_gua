@@ -316,10 +316,14 @@ build_deb_package() {
     DEB_FILE="${APP_NAME}_${APP_VERSION}_${ARCHITECTURE}.deb"
     
     # 设置正确的文件权限
-    find "$DEB_DIR" -type f -exec chmod 644 {} \;
+    # DEBIAN 里的维护脚本需要可执行权限，不能被统一置为 644
+    find "$DEB_DIR" -type f ! -path "$DEB_DIR/DEBIAN/*" -exec chmod 644 {} \;
     find "$DEB_DIR" -type d -exec chmod 755 {} \;
     chmod 755 "$DEB_DIR/usr/bin/$APP_NAME"
     chmod 755 "$DEB_DIR/usr/share/$APP_NAME/money_gua"
+    chmod 755 "$DEB_DIR/DEBIAN/postinst"
+    chmod 755 "$DEB_DIR/DEBIAN/prerm"
+    chmod 755 "$DEB_DIR/DEBIAN/postrm"
     
     # 构建 DEB 包
     dpkg-deb --build "$DEB_DIR" "$DEB_FILE"
