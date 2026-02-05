@@ -4,6 +4,7 @@ import '../widgets/yin_yang_switch.dart';
 import '../widgets/tap_to_read.dart';
 import '../data/hexagram_data.dart';
 import 'result_page.dart';
+import 'history_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -28,19 +29,19 @@ class _HomePageState extends State<HomePage> {
     // lines[0] is the first char in our key convention?
     // In hexagram_data.dart: "Binary key is from Bottom (index 0) to Top (index 5)"
     // String construction:
-    // We want "101010". 
+    // We want "101010".
     // If lines[0] is '1', lines[1] is '0'.
     // The string should likely be index 0 + index 1 + ... + index 5
     // Yes, verified in data file logic.
-    
+
     String binary = lines.map((e) => e ? '1' : '0').join('');
-    
+
     Hexagram result = getHexagram(binary);
 
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => ResultPage(hexagram: result),
+        builder: (context) => ResultPage(hexagram: result, lines: lines),
       ),
     );
   }
@@ -54,6 +55,18 @@ class _HomePageState extends State<HomePage> {
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
+        actions: [
+          IconButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const HistoryPage()),
+              );
+            },
+            icon: const Icon(Icons.access_time),
+            tooltip: '历史记录',
+          ),
+        ],
       ),
       body: Center(
         child: Padding(

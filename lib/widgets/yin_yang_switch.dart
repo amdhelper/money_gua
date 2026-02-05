@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class YinYangSwitch extends StatefulWidget {
   final bool isYang;
-  final VoidCallback onToggle;
+  final VoidCallback? onToggle;
   final double width;
   final double height;
   final Color activeColor;
@@ -11,7 +11,7 @@ class YinYangSwitch extends StatefulWidget {
   const YinYangSwitch({
     super.key,
     required this.isYang,
-    required this.onToggle,
+    this.onToggle,
     this.width = 200,
     this.height = 40,
     this.activeColor = const Color(0xFFFFD700), // Gold
@@ -22,7 +22,8 @@ class YinYangSwitch extends StatefulWidget {
   State<YinYangSwitch> createState() => _YinYangSwitchState();
 }
 
-class _YinYangSwitchState extends State<YinYangSwitch> with SingleTickerProviderStateMixin {
+class _YinYangSwitchState extends State<YinYangSwitch>
+    with SingleTickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -35,16 +36,14 @@ class _YinYangSwitchState extends State<YinYangSwitch> with SingleTickerProvider
           alignment: Alignment.center,
           children: [
             // Background container (optional context)
-            
+
             // The Bar(s)
             AnimatedSwitcher(
               duration: const Duration(milliseconds: 300),
               transitionBuilder: (Widget child, Animation<double> animation) {
                 return ScaleTransition(scale: animation, child: child);
               },
-              child: widget.isYang
-                  ? _buildYangBar()
-                  : _buildYinBar(),
+              child: widget.isYang ? _buildYangBar() : _buildYinBar(),
             ),
           ],
         ),
@@ -62,10 +61,10 @@ class _YinYangSwitchState extends State<YinYangSwitch> with SingleTickerProvider
         borderRadius: BorderRadius.circular(4),
         boxShadow: [
           BoxShadow(
-            color: widget.activeColor.withOpacity(0.4),
+            color: widget.activeColor.withValues(alpha: 0.4),
             blurRadius: 8,
             spreadRadius: 1,
-          )
+          ),
         ],
       ),
     );

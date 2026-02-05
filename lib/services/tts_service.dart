@@ -23,24 +23,31 @@ class TtsService {
 
   Future<void> _init() async {
     if (!kIsWeb && Platform.isLinux) {
-      // 1. Check for local python_env (Development/Portable)
-      // We check current directory first.
-      final localPath = '${Directory.current.path}/python_env/bin/edge-tts';
-      if (await File(localPath).exists()) {
-        _edgeTtsPath = localPath;
+      // 1. Check for installed app's python_env (when installed via DEB)
+      final installedPath = '/usr/share/money-gua/python_env/bin/edge-tts';
+      if (await File(installedPath).exists()) {
+        _edgeTtsPath = installedPath;
         _useEdgeTtsCli = true;
-        debugPrint('TTS: Found local edge-tts at $_edgeTtsPath');
+        debugPrint('TTS: Found installed edge-tts at $_edgeTtsPath');
       } else {
-        // 2. Check system path
-        try {
-          final result = await Process.run('which', ['edge-tts']);
-          if (result.exitCode == 0) {
-            _edgeTtsPath = result.stdout.toString().trim();
-            _useEdgeTtsCli = true;
-            debugPrint('TTS: Found system edge-tts at $_edgeTtsPath');
+        // 2. Check for local python_env (Development/Portable)
+        final localPath = '${Directory.current.path}/python_env/bin/edge-tts';
+        if (await File(localPath).exists()) {
+          _edgeTtsPath = localPath;
+          _useEdgeTtsCli = true;
+          debugPrint('TTS: Found local edge-tts at $_edgeTtsPath');
+        } else {
+          // 3. Check system path
+          try {
+            final result = await Process.run('which', ['edge-tts']);
+            if (result.exitCode == 0) {
+              _edgeTtsPath = result.stdout.toString().trim();
+              _useEdgeTtsCli = true;
+              debugPrint('TTS: Found system edge-tts at $_edgeTtsPath');
+            }
+          } catch (e) {
+            debugPrint('TTS: Error checking for system edge-tts: $e');
           }
-        } catch (e) {
-          debugPrint('TTS: Error checking for system edge-tts: $e');
         }
       }
 

@@ -33,6 +33,14 @@ mkdir -p "$DEB_DIR"/{DEBIAN,usr/{bin,share/{applications,pixmaps,icons/hicolor/{
 echo "📋 复制应用文件..."
 cp -r build/linux/x64/release/bundle/* "$DEB_DIR/usr/share/$APP_NAME/"
 
+# 复制 python_env 如果存在
+if [ -d "python_env" ]; then
+    echo "📦 复制 python_env..."
+    cp -r python_env "$DEB_DIR/usr/share/$APP_NAME/"
+else
+    echo "⚠️  python_env 不存在，应用将依赖系统的 edge-tts"
+fi
+
 # 创建启动脚本
 cat > "$DEB_DIR/usr/bin/$APP_NAME" << EOF
 #!/bin/bash
@@ -76,6 +84,7 @@ Categories=Education;Utility;
 Keywords=易经;占卜;金钱卦;divination;iching;
 StartupNotify=true
 StartupWMClass=money_gua
+MimeType=
 EOF
 
 # 创建控制文件
