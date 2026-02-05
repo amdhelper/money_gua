@@ -310,7 +310,10 @@ class _HistoryPageDesktopState extends State<HistoryPageDesktop> {
                   ),
                   const SizedBox(width: 20),
                   Expanded(
-                    child: _buildRecordText(record),
+                    child: _buildRecordText(
+                      record,
+                      lineWidth: lineWidth,
+                    ),
                   ),
                 ],
               ),
@@ -321,104 +324,210 @@ class _HistoryPageDesktopState extends State<HistoryPageDesktop> {
     );
   }
 
-  Widget _buildRecordText(DivinationRecord record) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
+  Widget _buildRecordText(
+    DivinationRecord record, {
+    required double lineWidth,
+  }) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
-              child: Text(
-                record.question,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    record.question,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
+                PopupMenuButton<String>(
+                  onSelected: (value) {
+                    if (value == 'delete') {
+                      _deleteRecord(record);
+                    }
+                  },
+                  itemBuilder: (context) => [
+                    const PopupMenuItem(
+                      value: 'delete',
+                      child: Row(
+                        children: [
+                          Icon(Icons.delete, color: Colors.red),
+                          SizedBox(width: 8),
+                          Text('删除', style: TextStyle(color: Colors.red)),
+                        ],
+                      ),
+                    ),
+                  ],
+                  child: const Icon(Icons.more_vert, color: Colors.white54),
+                ),
+              ],
             ),
-            PopupMenuButton<String>(
-              onSelected: (value) {
-                if (value == 'delete') {
-                  _deleteRecord(record);
-                }
-              },
-              itemBuilder: (context) => [
-                const PopupMenuItem(
-                  value: 'delete',
-                  child: Row(
-                    children: [
-                      Icon(Icons.delete, color: Colors.red),
-                      SizedBox(width: 8),
-                      Text('删除', style: TextStyle(color: Colors.red)),
-                    ],
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFD700).withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    record.hexagram.name,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Color(0xFFFFD700),
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    record.hexagram.title,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Colors.white70,
+                    ),
                   ),
                 ),
               ],
-              child: const Icon(Icons.more_vert, color: Colors.white54),
+            ),
+            const SizedBox(height: 6),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    '${record.hexagram.upperTrigram}${record.hexagram.lowerTrigram}${record.hexagram.title}卦',
+                    style: const TextStyle(fontSize: 12, color: Colors.white60),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                _buildTrigramInfo(
+                  label: '上卦',
+                  name: record.hexagram.upperTrigram,
+                  lines: record.lines,
+                  lineWidth: lineWidth,
+                  startIndex: 3,
+                ),
+                const SizedBox(width: 12),
+                _buildTrigramInfo(
+                  label: '下卦',
+                  name: record.hexagram.lowerTrigram,
+                  lines: record.lines,
+                  lineWidth: lineWidth,
+                  startIndex: 0,
+                ),
+              ],
+            ),
+            if (record.notes != null && record.notes!.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Text(
+                record.notes!,
+                style: const TextStyle(fontSize: 14, color: Colors.white60),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+            const SizedBox(height: 8),
+            Text(
+              record.formattedDate,
+              style: const TextStyle(fontSize: 12, color: Colors.white38),
             ),
           ],
-        ),
-        const SizedBox(height: 8),
-        Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 8,
-                vertical: 4,
-              ),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFFD700).withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: Text(
-                record.hexagram.name,
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: Color(0xFFFFD700),
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                record.hexagram.title,
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: Colors.white70,
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 6),
+        );
+      },
+    );
+  }
+
+  Widget _buildTrigramInfo({
+    required String label,
+    required String name,
+    required String lines,
+    required double lineWidth,
+    required int startIndex,
+  }) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
         Text(
-          '上卦：${record.hexagram.upperTrigram}    下卦：${record.hexagram.lowerTrigram}',
+          '$label：$name',
           style: const TextStyle(fontSize: 12, color: Colors.white60),
         ),
-        const SizedBox(height: 4),
-        Text(
-          '${record.hexagram.upperTrigram}${record.hexagram.lowerTrigram}${record.hexagram.title}卦',
-          style: const TextStyle(fontSize: 12, color: Colors.white60),
-        ),
-        if (record.notes != null && record.notes!.isNotEmpty) ...[
-          const SizedBox(height: 8),
-          Text(
-            record.notes!,
-            style: const TextStyle(fontSize: 14, color: Colors.white60),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
-        const SizedBox(height: 8),
-        Text(
-          record.formattedDate,
-          style: const TextStyle(fontSize: 12, color: Colors.white38),
+        const SizedBox(width: 8),
+        _buildTrigramPreview(
+          lines,
+          lineWidth: lineWidth,
+          startIndex: startIndex,
         ),
       ],
+    );
+  }
+
+  Widget _buildTrigramPreview(
+    String lines, {
+    required double lineWidth,
+    required int startIndex,
+  }) {
+    final bits = lines.split('');
+    final barHeight = 6.0;
+    return Column(
+      children: List.generate(3, (index) {
+        final bitIndex = startIndex + (2 - index);
+        final isYang = bits[bitIndex] == '1';
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 2),
+          child: Row(
+            children: [
+              SizedBox(
+                width: lineWidth,
+                child: isYang
+                    ? Container(
+                        height: barHeight,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFFD700),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      )
+                    : Row(
+                        children: [
+                          Expanded(
+                            child: Container(
+                              height: barHeight,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFFFD700),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Container(
+                              height: barHeight,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFFFD700),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+              ),
+            ],
+          ),
+        );
+      }),
     );
   }
 
@@ -435,6 +544,7 @@ class _HistoryPageDesktopState extends State<HistoryPageDesktop> {
         return Padding(
           padding: const EdgeInsets.symmetric(vertical: 2),
           child: Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
               SizedBox(
                 width: lineWidth,
