@@ -16,9 +16,12 @@ class TtsService {
   bool _useEdgeTtsCli = false;
 
   String? _edgeTtsPath;
+  String? _edgeTtsPythonPath;
+  bool _edgeTtsNeedsPython = false;
+  late final Future<void> _initFuture;
 
   TtsService._internal() {
-    _init();
+    _initFuture = _init();
   }
 
   Future<void> _init() async {
@@ -26,24 +29,25 @@ class TtsService {
       // 1. Check for installed app's python_env (when installed via DEB)
       final installedPath = '/usr/share/money-gua/python_env/bin/edge-tts';
       if (await File(installedPath).exists()) {
-        _edgeTtsPath = installedPath;
-        _useEdgeTtsCli = true;
-        debugPrint('TTS: Found installed edge-tts at $_edgeTtsPath');
+        if (await _configureEdgeTts(installedPath)) {
+          debugPrint('TTS: Found installed edge-tts at $_edgeTtsPath');
+        }
       } else {
         // 2. Check for local python_env (Development/Portable)
         final localPath = '${Directory.current.path}/python_env/bin/edge-tts';
         if (await File(localPath).exists()) {
-          _edgeTtsPath = localPath;
-          _useEdgeTtsCli = true;
-          debugPrint('TTS: Found local edge-tts at $_edgeTtsPath');
+          if (await _configureEdgeTts(localPath)) {
+            debugPrint('TTS: Found local edge-tts at $_edgeTtsPath');
+          }
         } else {
           // 3. Check system path
           try {
             final result = await Process.run('which', ['edge-tts']);
             if (result.exitCode == 0) {
-              _edgeTtsPath = result.stdout.toString().trim();
-              _useEdgeTtsCli = true;
-              debugPrint('TTS: Found system edge-tts at $_edgeTtsPath');
+              final systemPath = result.stdout.toString().trim();
+              if (await _configureEdgeTts(systemPath)) {
+                debugPrint('TTS: Found system edge-tts at $_edgeTtsPath');
+              }
             }
           } catch (e) {
             debugPrint('TTS: Error checking for system edge-tts: $e');
@@ -70,6 +74,8 @@ class TtsService {
   Future<void> speak(String text) async {
     if (text.isEmpty) return;
 
+    await _initFuture;
+
     // Stop previous playback
     await stop();
 
@@ -88,6 +94,7 @@ class TtsService {
   }
 
   Future<void> stop() async {
+    await _initFuture;
     await _audioPlayer.stop();
 
     // Only call flutter_tts.stop() if not using edge-tts CLI
@@ -110,14 +117,17 @@ class TtsService {
 
       if (!await file.exists()) {
         debugPrint('TTS: Generating audio for "$text" using $_edgeTtsPath');
-        final process = await Process.run(_edgeTtsPath!, [
+        final args = [
           '--text',
           text,
           '--voice',
           'zh-CN-YunxiNeural',
           '--write-media',
           filePath,
-        ]);
+        ];
+        final process = _edgeTtsNeedsPython && _edgeTtsPythonPath != null
+            ? await Process.run(_edgeTtsPythonPath!, [_edgeTtsPath!, ...args])
+            : await Process.run(_edgeTtsPath!, args);
 
         if (process.exitCode != 0) {
           debugPrint('EdgeTTS Error: ${process.stderr}');
@@ -141,6 +151,39 @@ class TtsService {
       } catch (e2) {
         debugPrint('TTS: Both edge-tts and flutter_tts failed: $e2');
       }
+    }
+  }
+
+  Future<bool> _configureEdgeTts(String path) async {
+    final normalized = path.trim();
+    if (normalized.isEmpty) return false;
+    if (!await _isExecutable(normalized)) {
+      final binDir = File(normalized).parent.path;
+      final python3Path = '$binDir/python3';
+      final pythonPath = '$binDir/python';
+      if (await File(python3Path).exists()) {
+        _edgeTtsPythonPath = python3Path;
+        _edgeTtsNeedsPython = true;
+      } else if (await File(pythonPath).exists()) {
+        _edgeTtsPythonPath = pythonPath;
+        _edgeTtsNeedsPython = true;
+      } else {
+        debugPrint('TTS: edge-tts exists but not executable: $normalized');
+        return false;
+      }
+    }
+
+    _edgeTtsPath = normalized;
+    _useEdgeTtsCli = true;
+    return true;
+  }
+
+  Future<bool> _isExecutable(String path) async {
+    try {
+      final stat = await File(path).stat();
+      return (stat.mode & 0x49) != 0;
+    } catch (_) {
+      return false;
     }
   }
 }

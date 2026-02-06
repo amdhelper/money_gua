@@ -111,6 +111,11 @@ cat > "$DEB_DIR/DEBIAN/postinst" << 'EOF'
 #!/bin/bash
 set -e
 
+# 修复内置 python_env 可执行权限（防止 edge-tts 无法运行）
+if [ -d /usr/share/money-gua/python_env/bin ]; then
+    chmod 755 /usr/share/money-gua/python_env/bin/* || true
+fi
+
 # 更新图标缓存
 if command -v gtk-update-icon-cache >/dev/null 2>&1; then
     gtk-update-icon-cache -f -t /usr/share/icons/hicolor >/dev/null 2>&1 || true
@@ -134,6 +139,10 @@ find "$DEB_DIR" -type d -exec chmod 755 {} \;
 chmod 755 "$DEB_DIR/usr/bin/$APP_NAME"
 chmod 755 "$DEB_DIR/usr/share/$APP_NAME/money_gua"
 chmod 755 "$DEB_DIR/DEBIAN/postinst"
+# 恢复 python_env/bin 下可执行文件权限（edge-tts、python 等）
+if [ -d "$DEB_DIR/usr/share/$APP_NAME/python_env/bin" ]; then
+    find "$DEB_DIR/usr/share/$APP_NAME/python_env/bin" -type f -exec chmod 755 {} \;
+fi
 
 # 构建 DEB 包
 echo "🔨 构建 DEB 包..."
