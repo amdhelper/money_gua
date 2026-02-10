@@ -61,7 +61,7 @@ class _YinYangSwitchState extends State<YinYangSwitch>
         borderRadius: BorderRadius.circular(4),
         boxShadow: [
           BoxShadow(
-            color: widget.activeColor.withValues(alpha: 0.4),
+            color: widget.activeColor.withOpacity(0.4),
             blurRadius: 8,
             spreadRadius: 1,
           ),

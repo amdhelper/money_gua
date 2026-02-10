@@ -191,7 +191,7 @@ class _AddRecordPageState extends State<AddRecordPage> {
                 color: const Color(0xFF1E1E1E),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: const Color(0xFFFFD700).withValues(alpha: 0.3),
+                  color: const Color(0xFFFFD700).withOpacity(0.3),
                   width: 1,
                 ),
               ),

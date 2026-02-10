@@ -251,14 +251,14 @@ class _HistoryPageDesktopState extends State<HistoryPageDesktop> {
           Icon(
             Icons.history,
             size: 64,
-            color: Colors.white.withValues(alpha: 0.3),
+            color: Colors.white.withOpacity(0.3),
           ),
           const SizedBox(height: 16),
           Text(
             _searchController.text.isNotEmpty ? '没有找到相关记录' : '还没有占卜记录',
             style: TextStyle(
               fontSize: 18,
-              color: Colors.white.withValues(alpha: 0.6),
+              color: Colors.white.withOpacity(0.6),
             ),
           ),
           const SizedBox(height: 8),
@@ -266,7 +266,7 @@ class _HistoryPageDesktopState extends State<HistoryPageDesktop> {
             _searchController.text.isNotEmpty ? '尝试其他关键词' : '开始你的第一次占卜吧',
             style: TextStyle(
               fontSize: 14,
-              color: Colors.white.withValues(alpha: 0.4),
+              color: Colors.white.withOpacity(0.4),
             ),
           ),
         ],
@@ -378,7 +378,7 @@ class _HistoryPageDesktopState extends State<HistoryPageDesktop> {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFFFD700).withValues(alpha: 0.2),
+                    color: const Color(0xFFFFD700).withOpacity(0.2),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
